@@ -1,0 +1,73 @@
+class JugState:
+    def __init__(self, x, y, parent=None, action="Initial"):
+        self.x = x  # Capacity of the first jug
+        self.y = y  # Capacity of the second jug
+        self.parent = parent  # Parent state
+        self.action = action  # Action leading to this state
+
+    def __str__(self):
+        return f"({self.x}, {self.y})"
+
+    def is_goal(self, target_x, target_y):
+        return self.x == target_x and self.y == target_y
+
+    def get_successors(self, x_capacity, y_capacity):
+        successors = []
+        if self.x < x_capacity:
+            successors.append(JugState(x_capacity, self.y, self, "Fill the first jug"))
+        if self.y < y_capacity:
+            successors.append(JugState(self.x, y_capacity, self, "Fill the second jug"))
+        if self.x > 0:
+            successors.append(JugState(0, self.y, self, "Empty the first jug"))
+        if self.y > 0:
+            successors.append(JugState(self.x, 0, self, "Empty the second jug"))
+        if self.x > 0 and self.y < y_capacity:
+            amount = min(self.x, y_capacity - self.y)
+            successors.append(JugState(self.x - amount, self.y + amount, self, f"Pour from first jug to second jug ({amount} units)"))
+        if self.y > 0 and self.x < x_capacity:
+            amount = min(self.y, x_capacity - self.x)
+            successors.append(JugState(self.x + amount, self.y - amount, self, f"Pour from second jug to first jug ({amount} units)"))
+
+        return successors
+
+def search_for_solution(x_capacity, y_capacity, target_x, target_y):
+    initial_state = JugState(0, 0)
+
+    stack = [initial_state]
+    visited = set()
+
+    while stack:
+        current_state = stack.pop()
+
+        if current_state.is_goal(target_x, target_y):
+            solution_path = []
+            while current_state:
+                solution_path.append((current_state.action, str(current_state)))
+                current_state = current_state.parent
+            solution_path.reverse()
+            return solution_path
+
+        visited.add((current_state.x, current_state.y))
+
+        for successor in current_state.get_successors(x_capacity, y_capacity):
+            if (successor.x, successor.y) not in visited:
+                stack.append(successor)
+
+    return None
+
+def main():
+    x_capacity = 4  # Capacity of the first jug
+    y_capacity = 3  # Capacity of the second jug
+    target_x = 2   # Desired amount in the first jug
+    target_y = 0   # Desired amount in the second jug
+
+    solution = search_for_solution(x_capacity, y_capacity, target_x, target_y)
+
+    if solution:
+        for step, (action, state) in enumerate(solution):
+            print(f"Step {step}: {action}, Current state: {state}")
+    else:
+        print("No solution found.")
+
+if __name__ == "__main__":
+    main()
