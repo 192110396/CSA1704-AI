@@ -1,0 +1,50 @@
+from collections import deque
+
+def is_valid_state(state):
+    m, c, b = state
+    if m < 0 or c < 0 or m > 3 or c > 3:
+        return False
+    if (m < c and m > 0) or ((3 - m) < (3 - c) and (3 - m) > 0):
+        return False
+    return True
+
+def move(state, move_action):
+    m, c, b = state
+    if b == 1:  
+        m -= move_action[0]
+        c -= move_action[1]
+    else:  
+        m += move_action[0]
+        c += move_action[1]
+    b = 1 - b 
+    return (m, c, b)
+
+def solve():
+    initial_state = (3, 3, 1)
+    goal_state = (0, 0, 0)
+    visited = set()
+    queue = deque([(initial_state, [])])
+
+    while queue:
+        current_state, path = queue.popleft()
+        if current_state == goal_state:
+            return path
+
+        visited.add(current_state)
+
+        for action in [(1, 0), (2, 0), (0, 1), (0, 2), (1, 1)]:
+            new_state = move(current_state, action)
+            if is_valid_state(new_state) and new_state not in visited:
+                new_path = path + [new_state]
+                queue.append((new_state, new_path))
+
+    return None
+
+if __name__ == "__main__":
+    solution = solve()
+    if solution:
+        print("Solution found:")
+        for state in solution:
+            print(state)
+    else:
+        print("No solution found.")
